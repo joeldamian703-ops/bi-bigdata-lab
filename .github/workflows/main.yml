@@ -20,11 +20,18 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Install Liquibase
+      - name: Install Liquibase and Databricks drivers
         run: |
           wget -q https://github.com/liquibase/liquibase/releases/download/v5.0.4/liquibase-5.0.4.tar.gz
           mkdir liquibase
           tar -xzf liquibase-5.0.4.tar.gz -C liquibase
+
+          wget -q https://repo1.maven.org/maven2/com/databricks/databricks-jdbc/3.4.2/databricks-jdbc-3.4.2.jar \
+            -O liquibase/lib/databricks-jdbc-3.4.2.jar
+
+          wget -q https://github.com/liquibase/liquibase-databricks/releases/download/v5.0.4/liquibase-databricks-5.0.4.jar \
+            -O liquibase/lib/liquibase-databricks-5.0.4.jar
+
           echo "$GITHUB_WORKSPACE/liquibase" >> "$GITHUB_PATH"
 
       - name: Create Liquibase properties
