@@ -1,0 +1,40 @@
+name: Liquibase CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate-liquibase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Liquibase
+        run: |
+          wget -q https://github.com/liquibase/liquibase/releases/download/v5.0.4/liquibase-5.0.4.tar.gz
+          mkdir liquibase
+          tar -xzf liquibase-5.0.4.tar.gz -C liquibase
+          echo "$GITHUB_WORKSPACE/liquibase" >> "$GITHUB_PATH"
+
+      - name: Create Liquibase properties
+        run: |
+          cat > liquibase.properties <<EOF
+          changelogFile: changelog/db.changelog-master.sql
+          url: jdbc:databricks://${{ secrets.DATABRICKS_HOST }}:443/default;transportMode=http;ssl=1;httpPath=${{ secrets.DATABRICKS_HTTP_PATH }};AuthMech=3;ConnCatalog=${{ secrets.DATABRICKS_CATALOG }};ConnSchema=default;
+          username: token
+          password: ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      - name: Validate changelog
+        run: liquibase validate
