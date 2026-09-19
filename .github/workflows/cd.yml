@@ -1,0 +1,50 @@
+name: Liquibase CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-liquibase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Liquibase and Databricks drivers
+        run: |
+          wget -q https://github.com/liquibase/liquibase/releases/download/v5.0.4/liquibase-5.0.4.tar.gz
+          mkdir liquibase
+          tar -xzf liquibase-5.0.4.tar.gz -C liquibase
+
+          wget -q https://repo1.maven.org/maven2/com/databricks/databricks-jdbc/3.4.2/databricks-jdbc-3.4.2.jar \
+            -O liquibase/lib/databricks-jdbc-3.4.2.jar
+
+          wget -q https://github.com/liquibase/liquibase-databricks/releases/download/v5.0.4/liquibase-databricks-5.0.4.jar \
+            -O liquibase/lib/liquibase-databricks-5.0.4.jar
+
+          echo "$GITHUB_WORKSPACE/liquibase" >> "$GITHUB_PATH"
+
+      - name: Create Liquibase properties
+        run: |
+          cat > liquibase.properties <<EOF
+          changelogFile: changelog/db.changelog-master.sql
+          url: jdbc:databricks://${{ secrets.DATABRICKS_HOST }}:443/default;transportMode=http;ssl=1;httpPath=${{ secrets.DATABRICKS_HTTP_PATH }};AuthMech=3;ConnCatalog=${{ secrets.DATABRICKS_CATALOG }};ConnSchema=default;
+          username: token
+          password: ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      - name: Validate changelog
+        run: liquibase validate
+
+      - name: Show pending changes
+        run: liquibase status
+
+      - name: Deploy changes to Databricks
+        run: liquibase update
