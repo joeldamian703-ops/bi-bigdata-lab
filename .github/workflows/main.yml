@@ -37,7 +37,7 @@ jobs:
       - name: Create Liquibase properties
         run: |
           cat > liquibase.properties <<EOF
-          changelogFile: changelog/db.changelog-master.sql
+          changelogFile: changelog/db.changelog-master.yaml
           url: jdbc:databricks://${{ secrets.DATABRICKS_HOST }}:443/default;transportMode=http;ssl=1;httpPath=${{ secrets.DATABRICKS_HTTP_PATH }};AuthMech=3;ConnCatalog=${{ secrets.DATABRICKS_CATALOG }};ConnSchema=default;
           username: token
           password: ${{ secrets.DATABRICKS_TOKEN }}
