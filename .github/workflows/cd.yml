@@ -49,5 +49,8 @@ jobs:
       - name: Validate changelog
         run: liquibase validate
 
-      - name: Deploy changes
+      - name: Show pending changes
+        run: liquibase status
+
+      - name: Deploy changes to Databricks
         run: liquibase update
