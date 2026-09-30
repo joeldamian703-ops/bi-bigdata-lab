@@ -1,13 +1,16 @@
-name: Liquibase CI
+name: Liquibase CD
 
 on:
-  pull_request:
+  push:
     branches:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  validate-liquibase:
+  deploy-liquibase:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,3 +48,6 @@ jobs:
 
       - name: Validate changelog
         run: liquibase validate
+
+      - name: Deploy changes
+        run: liquibase update
