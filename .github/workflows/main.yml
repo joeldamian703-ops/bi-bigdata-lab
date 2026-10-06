@@ -45,3 +45,9 @@ jobs:
 
       - name: Validate changelog
         run: liquibase validate
+
+      - name: Show pending changes
+        run: liquibase status --verbose
+
+      - name: Preview database changes
+        run: liquibase update-sql
